@@ -28,10 +28,16 @@ int main ()
 	  omp_set_num_threads(NUM_THREADS);
 	  #pragma omp parallel
 	  {
+		  // These vars sit on stack for each thread
 		  int i, id, nthrds;
 		  double x;
 		  id = omp_get_thread_num();
 		  nthrds = omp_get_num_threads();
+		  // Pick a thread to save a copy of number of threads as
+		  // we simply request # of threads outside // region but 
+		  // can be given fewer by env; have to check threads you got!
+		  // Copy num threads we had outside // region into it so 
+		  // you know how many there were once you get out of it
 		  if (id == 0) nthreads = nthrds;
 
 		  start_time = omp_get_wtime();
@@ -40,6 +46,8 @@ int main ()
 			  sum[id]+=4.0/(1.0+x*x);
 		  }
 	  }
+	  // Now all vars from thread stack are lost (aside from master threads')
+	  // aside from sum which is shared to avoid race conditions
 	  for (i = 0, pi = 0.0; i < nthreads; ++i)
 	  	pi += sum[i]*step;
 	  run_time = omp_get_wtime() - start_time;
