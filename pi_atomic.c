@@ -13,12 +13,14 @@ from the OpenMP runtime library
 History: Written by Tim Mattson, 11/99.
 
 */
-// gcc -fopenmp pi_sync.c && ./a.out
+// gcc -fopenmp pi_atomic.c && ./a.out
 #include <stdio.h>
 #include <omp.h>
 #define NUM_THREADS 4
 // In this version we use synchronization to get around the
 // fact that different machines have different cache line sizes
+// and use atomic as a lightweight and efficient way to do 
+// mutual exclusion
 static long num_steps = 100000000;
 double step;
 int main()
@@ -66,10 +68,9 @@ int main()
                 Expect performance to tank -- put after the loop!
             */
         }
-#pragma omp critical
-        // Potential for race conditions as each threads sum pi
-        // at its own "pace" so need mutual exclusion of sum in pi
-        pi += sum * step;
+        sum *= step;
+        #pragma omp atomic
+            pi += sum;
     }
     run_time = omp_get_wtime() - start_time;
     printf("\n pi with %ld steps is %lf in %lf seconds\n ", num_steps, pi, run_time);
