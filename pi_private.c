@@ -13,7 +13,7 @@ from the OpenMP runtime library
 History: Written by Tim Mattson, 11/99.
 
 */
-// gcc pi_loops.c && ./a.out
+// gcc pi_private.c && ./a.out
 #include <stdio.h>
 #include <omp.h>
 static long num_steps = 100000000;
@@ -25,17 +25,14 @@ int main()
     double start_time, run_time;
     step = 1.0 / (double)num_steps;
     start_time = omp_get_wtime();
-#pragma omp parallel
-    {
-        double x;
-#pragma omp for reduction(+ \
-                          : sum)
+    // Now code could run with a compiler that doesn't have openmp (minus timings -- use other native libraries)
+#pragma omp parallel for private(x) reduction(+ \
+                                              : sum)
         for (i = 0; i < num_steps; ++i)
         {
             x = (i + 0.5) * step;
             sum = sum + 4.0 / (1.0 + x * x);
         }
-    }
     pi = step * sum;
     run_time = omp_get_wtime() - start_time;
     printf("\n pi with %ld steps is %lf in %lf seconds\n ", num_steps, pi, run_time);
