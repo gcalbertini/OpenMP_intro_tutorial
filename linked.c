@@ -76,10 +76,12 @@ int main(int argc, char *argv[])
 
    start = omp_get_wtime();
    {
-#pragma omp parallel num_threads(N + 1)
+// Utilized the fact that have N elements and indexing starts at 0 --> replaces loop that needs to know the count by passing through all elements first 
+#pragma omp parallel num_threads(N+1)
       {
          struct node *a;
-#pragma omp critical
+         // shared node but computations happen one thread at a time
+         #pragma omp critical
          {
             a = p;
             p = p->next;
